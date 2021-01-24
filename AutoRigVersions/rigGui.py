@@ -15,7 +15,7 @@ editMode = False
 
 def guiJoints():
 
-    global spineCount
+    global spineCount,neckCount
     if cmds.window (newWindow, q=True, exists =True):
         cmds.deleteUI(newWindow)
 
@@ -51,17 +51,23 @@ def guiJoints():
     for i in range(2):
         cmds.separator(h=30,style='none')
 
+    cmds.text("Neck Count", l="Neck Count:", align="center")
+    neckCount = cmds.intField(minValue=1, maxValue=10, value=2)
+
+    cmds.button(l='Edit Mode',w = 10,h=10,c="lockAll(editMode)",aop =True)
+    for i in range(2):
+        cmds.separator(h=30,style ='none')
+
     cmds.button(l='Create Locators', c=generateLocators)
     cmds.button(l='Delete Locators', c=deleteLocators)
-    cmds.button(l='Edit Mode',w = 10,h=10,c="lockAll(editMode)",aop =True)
 
-    cmds.separator(h=10, style='none')
-    for i in range (5):
+    for i in range(2):
+        cmds.separator(h=10,style ='none')
+
+    for i in range(5):
         cmds.separator(h=10)
-    cmds.text('step', l='Step 2: Create all the joints  :', fn='boldLabelFont',h=10)
 
-    for i in range(10):
-        cmds.separator(h=10,style='none')
+    cmds.text('step', l='Step 2: Create all the joints  :', fn='boldLabelFont', h=10)
 
     cmds.button(l='Create Joints ', c=createJoints)
     '''
@@ -81,14 +87,8 @@ def createJoints(*args):
     #create spine
     root =cmds.ls("Loc_ROOT")
     allSpine= cmds.ls ("Loc_SPINE_*",type ='locator')
-
     spine= cmds.listRelatives(*allSpine, p =True,f=True)
-
     rootPos = cmds.xform(root, q=True,t =True,ws =True)
-    #rootJoint = cmds.joint(radius =0.1, p =rootPos, name ="Rig_Root")
-
-    #cmds.parent (rootJoint, w=True, a=True)
-    #cmds.parent(rootJoint, 'Rig', a=True)
 
     #create spine
     for i,j in enumerate(spine):
@@ -132,13 +132,12 @@ def generateLocators(*args):
     createSpine()
 
 def createSpine():
+    global rig_Type
     rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
-    global spineCount
     for i in range(0, cmds.intField(spineCount, q=True, value=True)):
         spine = cmds.spaceLocator(n='Loc_SPINE_' + str(i))
         cmds.move(0, (4 * i), 0, spine)
         # cmds.parent(spine,'LOC_ROOT')
-
         if i == 0:
             cmds.parent(spine, 'LOC_ROOT')
         else:
@@ -154,6 +153,23 @@ def createSpine():
     createArms(-1)
     createLegs(1)
     createLegs(-1)
+    createHead()
+
+def createHead():
+
+    for i in range(0, cmds.intField(neckCount, q=True, value=True)):
+        neck = cmds.spaceLocator(n='Loc_Neck_' + str(i))
+        cmds.move(0, (3 * i), 0, neck)
+        if i == 0:
+            cmds.parent(neck, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
+        else:
+            cmds.parent(neck, 'Loc_Neck_' + str(i - 1))
+
+    if rig_Type == 1:
+        cmds.move(0,37,0,'Loc_Neck_' + str(i))
+    if rig_Type == 2:
+        cmds.rotate(180, 0, 0, 'Loc_Neck_' + str(i))
+        cmds.move(0, 10, -6, 'Loc_Neck_' + str(i))
 
 
 def createArms(side):
