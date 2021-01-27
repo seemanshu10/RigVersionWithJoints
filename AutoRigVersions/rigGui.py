@@ -6,7 +6,12 @@
 
 # importing the maya commands as cmds 
 import maya.cmds as cmds
+import Locators
+
+Locators = reload(Locators)
+
 #import Locators
+
 #Locators=reload(Locators)
 
 scriptName = __name__
@@ -14,7 +19,6 @@ newWindow = 'Auto_rigMaker'
 editMode = False
 
 def guiJoints():
-
     global spineCount,neckCount
     if cmds.window (newWindow, q=True, exists =True):
         cmds.deleteUI(newWindow)
@@ -42,12 +46,14 @@ def guiJoints():
     cmds.menuItem(label='Quadraped')
 
     cmds.button(l='Mirror Loc Y->X', w=10, h=10, c="mirrorLocatorsYX()", aop=True)
-    for i in range(2):
+    for i in range(1):
         cmds.separator(h=30,style='none')
-
-    cmds.text("Spine Count",l="Spine Count:",align ="center")
-    spineCount = cmds.intField(minValue=1, maxValue=10, value=4)
-    cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
+    
+    for i in range(1):
+        cmds.separator(h=30,style='none')
+        
+	Locators.globalNames()
+	cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
     for i in range(2):
         cmds.separator(h=30,style='none')
 
@@ -58,8 +64,9 @@ def guiJoints():
     for i in range(2):
         cmds.separator(h=30,style ='none')
 
-    cmds.button(l='Create Locators', c=generateLocators)
-    cmds.button(l='Delete Locators', c=deleteLocators)
+    cmds.button(l='Create Locators', c=Locators.generateLocators)
+   
+    cmds.button(l='Delete Locators', c=Locators.deleteLocators)
 
     for i in range(2):
         cmds.separator(h=10,style ='none')
@@ -77,7 +84,7 @@ def guiJoints():
     '''
     # displaying Window
     cmds.showWindow()
-
+	
 def createJoints(*args):
     if cmds.objExists("Rig"):
         print "Rig already Exists"
@@ -97,259 +104,69 @@ def createJoints(*args):
 
     #create Arm
 
-    L_upperArm = cmds.ls('Loc_LeftArm_0')
-    L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True,ws =True)
-    L_upperArmJoint = cmds.joint(radius =0.5,p = L_UpperArmPos,name ="Rig_L_UpperArm0")
-
-    L_upperArm = cmds.ls('Loc_LeftArm_1')
-    L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
-    L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm1")
-    
-    L_upperArm = cmds.ls('Loc_LeftArm_2')
-    L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
-    L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm2")
-
-    # mirror joint
-    cmds.mirrorJoint( 'Rig_L_UpperArm0',mirrorYZ =True, searchReplace=('L_', 'R_'))
-    '''
-    for i range (0,3):
-        L_upperArm = cmds.ls('Loc_LeftArm_'+str(i))
-        #L_upperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
-        #print (L_upperArmPos)
-        #L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="RIG_L_UpperArm"+str(i))
-    '''
-
-def generateLocators(*args):
-    if cmds.objExists("LOC_Master"):
-        print
-        'Joints Master already exists.'
-    else:
-        cmds.group(em=True, name='LOC_Master')
-    root = cmds.spaceLocator(n="LOC_ROOT")
-    cmds.scale(0.5, 0.5, 0.5, root)
-    cmds.move(0, 1, 0, root)
-    cmds.parent(root, "LOC_Master")
-    createSpine()
-
-def createSpine():
-    global rig_Type
-    rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
-    for i in range(0, cmds.intField(spineCount, q=True, value=True)):
-        spine = cmds.spaceLocator(n='Loc_SPINE_' + str(i))
-        cmds.move(0, (4 * i), 0, spine)
-        # cmds.parent(spine,'LOC_ROOT')
-        if i == 0:
-            cmds.parent(spine, 'LOC_ROOT')
-        else:
-            cmds.parent(spine, 'Loc_SPINE_' + str(i - 1))
-
+    # create biped
     if rig_Type == 1:
-        cmds.move(0, 20, 0, 'LOC_Master')
+        # left arm
+        L_upperArm = cmds.ls('Loc_LeftArm_0')
+        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True,ws =True)
+        L_upperArmJoint = cmds.joint(radius =0.5,p = L_UpperArmPos,name ="Rig_L_UpperArm0")
+
+        L_upperArm = cmds.ls('Loc_LeftArm_1')
+        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
+        L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm1")
+
+        L_upperArm = cmds.ls('Loc_LeftArm_2')
+        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
+        L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm2")
+
+        #create leg
+        cmds.select(d=True)
+        cmds.select('Rig_Spine_0')
+
+        L_upperLegJoint = cmds.joint(radius =1,p=cmds.xform(cmds.ls('Loc_LeftLeg_0', type ='transform'), q=True,t= True, ws =True), name ="Rig_L_Leg_0")
+        L_upperLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_1")
+        L_upperLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_2")
+        L_upperLegJoint3 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_3', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_3")
+        L_upperLegJoint4 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_4', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_4")
+
+
+        # mirror joint
+        cmds.mirrorJoint( 'Rig_L_UpperArm0',mirrorYZ =True, searchReplace=('L_', 'R_'))
+        cmds.mirrorJoint('Rig_L_Leg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
+        
+    # create quadra ped
     if rig_Type == 2:
-        cmds.rotate(90, 0, 0, 'LOC_Master')
-        cmds.move(0, 10, -6, 'LOC_Master')
+        # left frontLeg
+        L_backLegJoint = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_0', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_0")
+        L_backLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_1")
+        L_backLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_2")
 
-    createArms(1)
-    createArms(-1)
-    createLegs(1)
-    createLegs(-1)
-    createHead()
+        # left frontLeg
+        cmds.select(d=True)
+        cmds.select('Rig_Spine_0')
 
-def createHead():
+        L_frontLegJoint = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_0', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_0")
+        L_frontLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_1")
+        L_frontLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_2")
 
-    for i in range(0, cmds.intField(neckCount, q=True, value=True)):
-        neck = cmds.spaceLocator(n='Loc_Neck_' + str(i))
-        cmds.move(0, (3 * i), 0, neck)
-        if i == 0:
-            cmds.parent(neck, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-        else:
-            cmds.parent(neck, 'Loc_Neck_' + str(i - 1))
-
-    if rig_Type == 1:
-        cmds.move(0,37,0,'Loc_Neck_' + str(i))
-    if rig_Type == 2:
-        cmds.rotate(180, 0, 0, 'Loc_Neck_' + str(i))
-        cmds.move(0, 10, -6, 'Loc_Neck_' + str(i))
+        # mirror joint
+        cmds.mirrorJoint('Rig_L_BackLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
+        cmds.mirrorJoint('Rig_L_FrontLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
 
 
-def createArms(side):
-    rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
-    if rig_Type == 1:
-        if side == 1:  # for Left_arm
-            if cmds.objExists("L_Arm_GRP"):
-                print
-                "is not doing anything"
+def createTail():
+    if rig_Type== 2:
+        for i in range (0,5):
+            tail = cmds.spaceLocator(n='Loc_Tail_' + str(i))
+            cmds.move(0, (-3 * i), 0, tail)
+            if i == 0:
+                cmds.parent(tail, 'Loc_SPINE_0')
             else:
-                L_arm = cmds.group(em=True, name='L_Arm_GRP')
-                cmds.parent(L_arm, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(4 * side, 1 + (8 * cmds.intField(spineCount, query=True, value=True)), 0, L_arm)
-                # upper Arm joints
-                for i in range(0, 3):
-                    upperArm = cmds.spaceLocator(n='Loc_LeftArm_' + str(i))
-                    cmds.move((8 * i), 0, 0, upperArm, preserveChildPosition=False)
-
-                    if i == 0:
-                        cmds.parent(upperArm, L_arm)
-                    else:
-                        cmds.parent(upperArm, 'Loc_LeftArm_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(L_arm, 'Loc_LeftArm_' + str(0), mo=False)
-                cmds.delete(tempConst)
-
-        else:
-            # for Right_arm
-            if cmds.objExists('R_Arm_GRP'):
-                print
-                "is not doing anything"
-            else:
-                R_arm = cmds.group(em=True, name='R_Arm_GRP')
-                cmds.parent(R_arm, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(4 * side, 1 + (8 * cmds.intField(spineCount, query=True, value=True)), 0, R_arm)
-                # upper Arm joints
-                for i in range(0, 3):
-                    upperArm = cmds.spaceLocator(n='Loc_RightArm_' + str(i))
-                    cmds.move((-8 * i), 0, 0, upperArm)
-
-                    if i == 0:
-                        cmds.parent(upperArm, R_arm)
-                    else:
-                        cmds.parent(upperArm, 'Loc_RightArm_' + str(i - 1))
-                tempConst = cmds.parentConstraint(R_arm, 'Loc_RightArm_' + str(0), mo=False)
-                cmds.delete(tempConst)
-    else:
-        if side == 1:  # for Left_Leg
-            if cmds.objExists("L_Leg_Front_GRP"):
-                print
-                "is not doing anything"
-            else:
-                L_leg_front = cmds.group(em=True, name='L_Leg_Front_GRP')
-                cmds.parent(L_leg_front, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(2 * side, 1 + (2 * cmds.intField(spineCount, query=True, value=True)), -7, L_leg_front, r=1)
-
-                # Create the locators left leg
-                for i in range(0, 3):
-                    front_Locator = cmds.spaceLocator(n='L_Leg_front_' + str(i))
-                    cmds.move(2, (-4 * i), -6, front_Locator)  # (5 * i)
-
-                    if i == 0:
-                        cmds.parent(front_Locator, L_leg_front)
-                    else:
-                        cmds.parent(front_Locator, 'L_Leg_front_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(L_leg_front, 'L_Leg_front_' + str(0), mo=False)
-                cmds.delete(tempConst)
-
-
-        else:  # for Right_leg front
-            if cmds.objExists('R_Leg_Front_GRP'):
-                print
-                "is not doing anything"
-            else:
-                R_leg_front = cmds.group(em=True, name='R_Leg_Front_GRP')
-                cmds.parent(R_leg_front, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(2 * side, 1 + (2 * cmds.intField(spineCount, query=True, value=True)), -7, R_leg_front, r=1)
-
-                # Create the locators right leg
-                for i in range(0, 3):
-                    front_Locator = cmds.spaceLocator(n='R_Leg_front_' + str(i))
-                    cmds.move(-2, (-4 * i), -6, front_Locator)
-
-                    if i == 0:
-                        cmds.parent(front_Locator, R_leg_front)
-                    else:
-                        cmds.parent(front_Locator, 'R_Leg_front_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(R_leg_front, 'R_Leg_front_' + str(0), mo=False)
-                cmds.delete(tempConst)
-
-
-def createLegs(side):
-    rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
-    if rig_Type == 1:
-        if side == 1:  # for Left_Leg
-            if cmds.objExists("L_Leg_GRP"):
-                print
-                "is not doing anything"
-            else:
-                L_leg = cmds.group(em=True, name='L_Leg_GRP')
-                cmds.parent(L_leg, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(4 * side, 1 + (4 * cmds.intField(spineCount, query=True, value=True)), 0, L_leg)
-                # upper Arm joints
-                for i in range(0, 3):
-                    upperLeg = cmds.spaceLocator(n='Loc_LeftLeg_' + str(i))
-                    cmds.move(0, (-8.5 * i), 0, upperLeg, preserveChildPosition=False)
-
-                    if i == 0:
-                        cmds.parent(upperLeg, L_leg)
-                    else:
-                        cmds.parent(upperLeg, 'Loc_LeftLeg_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(L_leg, 'Loc_LeftLeg_' + str(0), mo=False)
-                cmds.delete(tempConst)
-
-        else:  # for Right_leg
-            if cmds.objExists('R_Leg_GRP'):
-                print
-                "is not doing anything"
-            else:
-                R_leg = cmds.group(em=True, name='R_Leg_GRP')
-                cmds.parent(R_leg, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(4 * side, 1 + (4 * cmds.intField(spineCount, query=True, value=True)), 0, R_leg)
-                # upper Arm joints
-                for i in range(0, 3):
-                    upperLeg = cmds.spaceLocator(n='Loc_RightLeg_' + str(i))
-                    cmds.move(0, (-8.5 * i), 0, upperLeg)
-                    if i == 0:
-                        cmds.parent(upperLeg, R_leg)
-                    else:
-                        cmds.parent(upperLeg, 'Loc_RightLeg_' + str(i - 1))
-                tempConst = cmds.parentConstraint(R_leg, 'Loc_RightLeg_' + str(0), mo=False)
-                cmds.delete(tempConst)
-    else:
-        if side == 1:  # for Left_Leg_Back
-            if cmds.objExists("L_Leg_Back_GRP"):
-                print
-                "is not doing anything"
-            else:
-                L_leg_back = cmds.group(em=True, name='L_Leg_Back_GRP')
-                cmds.parent(L_leg_back, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(2 * side, 1 + (2 * cmds.intField(spineCount, query=True, value=True)), 8, L_leg_back, r=1)
-
-                # Create the locators left leg
-                for i in range(0, 3):
-                    back_Locator = cmds.spaceLocator(n='L_Leg_Back_' + str(i))
-                    cmds.move(2, (4 * -i), 8, back_Locator)  # (5 * i)
-
-                    if i == 0:
-                        cmds.parent(back_Locator, L_leg_back)
-                    else:
-                        cmds.parent(back_Locator, 'L_Leg_Back_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(L_leg_back, 'L_Leg_Back_' + str(0), mo=False)
-                cmds.delete(tempConst)
-
-        else:  # for Right_leg_Back
-
-            if cmds.objExists('R_Leg_Back_GRP'):
-                print
-                "is not doing anything"
-            else:
-                R_leg_back = cmds.group(em=True, name='R_Leg_Back_GRP')
-                cmds.parent(R_leg_back, 'Loc_SPINE_' + str(cmds.intField(spineCount, query=True, value=True) - 1))
-                cmds.move(2 * side, 1 + (2 * cmds.intField(spineCount, query=True, value=True)), 8, R_leg_back, r=1)
-
-                # Create the locators right leg
-                for i in range(0, 3):
-                    back_Locator = cmds.spaceLocator(n='R_Leg_Back_' + str(i))
-                    cmds.move(-2, (4 * -i), 8, back_Locator)
-
-                    if i == 0:
-                        cmds.parent(back_Locator, R_leg_back)
-                    else:
-                        cmds.parent(back_Locator, 'R_Leg_Back_' + str(i - 1))
-
-                tempConst = cmds.parentConstraint(R_leg_back, 'R_Leg_Back_' + str(0), mo=False)
-                cmds.delete(tempConst)
+                cmds.parent(tail, 'Loc_Tail_' + str(i - 1))
+        temp = cmds.parentConstraint('Loc_SPINE_0','Loc_Tail_0', mo=False)
+        cmds.delete(temp)
+        cmds.move(0,-2, 0, 'Loc_Neck_0',r=True,os =True,wd=True)
+        cmds.rotate()
 
 
 def lockAll(lock):
@@ -389,9 +206,3 @@ def mirrorLocatorsYX(*args):
     for i,l in enumerate(rightLocators):
         pos = cmds.xform(l, q=True, t =True, ws =True)
         cmds.move(-pos[0],pos[1],pos[2],leftLocators[i])
-
-def deleteLocators(*args):
-    loc=cmds.ls ('LOC_*',sl =False)
-    cmds.delete(loc)
-    temp=cmds.ls('Rig')
-    cmds.delete(temp)
