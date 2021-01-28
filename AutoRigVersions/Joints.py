@@ -6,7 +6,7 @@ Locators =reload(Locators)
 def CreateJointsWindow():
 	cmds.button(l='Create Joints ', c="Joints.createJoints()")
 	
-def createJoints():
+def createJoints(*args):
     if cmds.objExists("Rig"):
         print "Rig already Exists"
     else:
