@@ -7,202 +7,121 @@
 # importing the maya commands as cmds 
 import maya.cmds as cmds
 import Locators
+import Joints
 
+# we are reloading all the extra scripts so that any changes are reloaded
 Locators = reload(Locators)
+Joints = reload(Joints)
 
-#import Locators
-
-#Locators=reload(Locators)
-
-scriptName = __name__
-newWindow = 'Auto_rigMaker'
 editMode = False
 
-def guiJoints():
-    global spineCount,neckCount
-    if cmds.window (newWindow, q=True, exists =True):
-        cmds.deleteUI(newWindow)
 
-    if cmds.windowPref (newWindow, q=True,exists =True):
-        cmds.windowPref (newWindow, r=True)
+class AutoRigV1():
 
-    myGUI = cmds.window (newWindow, t='AutoRig_v1.0', w=500, h=340)
-    main_layout =cmds.columnLayout ('Main Header')
-    cmds.rowColumnLayout(nc=5, cw=[(1, 150), (2, 100), (3, 100), (4, 100), (5, 50)])
-    cmds.separator(h=10, style='none')
-    titleDisplay =cmds.text(label = 'Auto Rig V1.0.0',align ="center", font ='boldLabelFont')
-    # creating spaces in the GUI
-    for i in range(3):
-        cmds.separator(h=10,style='none')
+    def __init__(self):
+        self.guiJoints()
 
-    for i in range (5):
-        cmds.separator(h=10)
+    def guiJoints(self):
+        global spineCount,neckCount,rig_Type
+        if cmds.window (newWindow, q=True, exists =True):
+            cmds.deleteUI(newWindow)
 
-    # naming options (for the creation joints)
-    cmds.text ('naming_text',l='Step 1: Set the type of rigs:',fn ='boldLabelFont')
-    text2=cmds.text('Rig type Biped or Quadraped',l='Type of Rig:')
-    opti=cmds.optionMenu('rig_Menu_Type')
-    cmds.menuItem(label='Biped')
-    cmds.menuItem(label='Quadraped')
+        if cmds.windowPref (newWindow, q=True,exists =True):
+            cmds.windowPref (newWindow, r=True)
+        print
+        myGUI = cmds.window (newWindow, t='AutoRig_v1.0', w=500, h=340)
+        main_layout =cmds.columnLayout ('Main Header')
+        cmds.rowColumnLayout(nc=5, cw=[(1, 150), (2, 100), (3, 100), (4, 100), (5, 50)])
+        cmds.separator(h=10, style='none')
+        titleDisplay =cmds.text(label = 'Auto Rig V1.0.0',align ="center", font ='boldLabelFont')
+        # creating spaces in the GUI
+        for i in range(3):
+            cmds.separator(h=10,style='none')
 
-    cmds.button(l='Mirror Loc Y->X', w=10, h=10, c="mirrorLocatorsYX()", aop=True)
-    for i in range(1):
-        cmds.separator(h=30,style='none')
-    
-    for i in range(1):
-        cmds.separator(h=30,style='none')
-        
-	Locators.globalNames()
-	cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
-    for i in range(2):
-        cmds.separator(h=30,style='none')
+        for i in range (5):
+            cmds.separator(h=10)
 
-    cmds.text("Neck Count", l="Neck Count:", align="center")
-    neckCount = cmds.intField(minValue=1, maxValue=10, value=2)
+        # naming options (for the creation joints)
+        cmds.text ('naming_text',l='Step 1: Set the type of rigs:',fn ='boldLabelFont')
+        text2=cmds.text('Rig type Biped or Quadraped',l='Type of Rig:')
+        opti=cmds.optionMenu('rig_Menu_Type')
+        cmds.menuItem(label='Biped')
+        cmds.menuItem(label='Quadraped')
 
-    cmds.button(l='Edit Mode',w = 10,h=10,c="lockAll(editMode)",aop =True)
-    for i in range(2):
-        cmds.separator(h=30,style ='none')
+        cmds.button(l='Mirror Loc Y->X', w=10, h=10, c="mirrorLocatorsYX()", aop=True)
+        for i in range(1):
+            cmds.separator(h=30,style='none')
 
-    cmds.button(l='Create Locators', c=Locators.generateLocators)
-   
-    cmds.button(l='Delete Locators', c=Locators.deleteLocators)
-
-    for i in range(2):
-        cmds.separator(h=10,style ='none')
-
-    for i in range(5):
-        cmds.separator(h=10)
-
-    cmds.text('step', l='Step 2: Create all the joints  :', fn='boldLabelFont', h=10)
-
-    cmds.button(l='Create Joints ', c=createJoints)
-    '''
-    cmds.columnLayout()
-    cmds.checkBoxGrp(numberOfCheckBoxes=3, label='Three Buttons', labelArray3=['One', 'Two', 'Three'])
-    cmds.checkBoxGrp(numberOfCheckBoxes=4, label='Four Buttons', labelArray4=['I', 'II', 'III', 'IV'])
-    '''
-    # displaying Window
-    cmds.showWindow()
-	
-def createJoints(*args):
-    if cmds.objExists("Rig"):
-        print "Rig already Exists"
-    else:
-        jointGrp = cmds.group(em =True, name ="Rig")
-
-    #create spine
-    root =cmds.ls("Loc_ROOT")
-    allSpine= cmds.ls ("Loc_SPINE_*",type ='locator')
-    spine= cmds.listRelatives(*allSpine, p =True,f=True)
-    rootPos = cmds.xform(root, q=True,t =True,ws =True)
-
-    #create spine
-    for i,j in enumerate(spine):
-        pos = cmds.xform(j, q =True, t =True, ws =True)
-        j= cmds.joint(radius =2,p=pos,name ="Rig_Spine_"+str(i))
-
-    #create Arm
-
-    # create biped
-    if rig_Type == 1:
-        # left arm
-        L_upperArm = cmds.ls('Loc_LeftArm_0')
-        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True,ws =True)
-        L_upperArmJoint = cmds.joint(radius =0.5,p = L_UpperArmPos,name ="Rig_L_UpperArm0")
-
-        L_upperArm = cmds.ls('Loc_LeftArm_1')
-        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
-        L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm1")
-
-        L_upperArm = cmds.ls('Loc_LeftArm_2')
-        L_UpperArmPos = cmds.xform(L_upperArm, q=True, t=True, ws=True)
-        L_upperArmJoint = cmds.joint(radius=0.5, p=L_UpperArmPos, name="Rig_L_UpperArm2")
-
-        #create leg
-        cmds.select(d=True)
-        cmds.select('Rig_Spine_0')
-
-        L_upperLegJoint = cmds.joint(radius =1,p=cmds.xform(cmds.ls('Loc_LeftLeg_0', type ='transform'), q=True,t= True, ws =True), name ="Rig_L_Leg_0")
-        L_upperLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_1")
-        L_upperLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_2")
-        L_upperLegJoint3 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_3', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_3")
-        L_upperLegJoint4 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('Loc_LeftLeg_4', type='transform'), q=True, t=True, ws=True),name="Rig_L_Leg_4")
+        for i in range(1):
+            cmds.separator(h=30,style='none')
 
 
-        # mirror joint
-        cmds.mirrorJoint( 'Rig_L_UpperArm0',mirrorYZ =True, searchReplace=('L_', 'R_'))
-        cmds.mirrorJoint('Rig_L_Leg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
-        
-    # create quadra ped
-    if rig_Type == 2:
-        # left frontLeg
-        L_backLegJoint = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_0', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_0")
-        L_backLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_1")
-        L_backLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_Back_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_BackLeg_2")
+        Locators.globalNames()
+        cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
+        for i in range(2):
+            cmds.separator(h=30,style='none')
 
-        # left frontLeg
-        cmds.select(d=True)
-        cmds.select('Rig_Spine_0')
+        cmds.text("Neck Count", l="Neck Count:", align="center")
+        neckCount = cmds.intField(minValue=1, maxValue=10, value=2)
 
-        L_frontLegJoint = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_0', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_0")
-        L_frontLegJoint1 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_1', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_1")
-        L_frontLegJoint2 = cmds.joint(radius=1,p=cmds.xform(cmds.ls('R_Leg_front_2', type='transform'), q=True, t=True, ws=True),name="Rig_L_FrontLeg_2")
+        cmds.button(l='Edit Mode',w = 10,h=10,c="lockAll(editMode)",aop =True)
+        for i in range(2):
+            cmds.separator(h=30,style ='none')
 
-        # mirror joint
-        cmds.mirrorJoint('Rig_L_BackLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
-        cmds.mirrorJoint('Rig_L_FrontLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
+        cmds.button(l='Create Locators', c=Locators.generateLocators)
+        cmds.button(l='Delete Locators', c=Locators.deleteLocators)
 
+        for i in range(2):
+            cmds.separator(h=10,style ='none')
 
-def createTail():
-    if rig_Type== 2:
-        for i in range (0,5):
-            tail = cmds.spaceLocator(n='Loc_Tail_' + str(i))
-            cmds.move(0, (-3 * i), 0, tail)
-            if i == 0:
-                cmds.parent(tail, 'Loc_SPINE_0')
-            else:
-                cmds.parent(tail, 'Loc_Tail_' + str(i - 1))
-        temp = cmds.parentConstraint('Loc_SPINE_0','Loc_Tail_0', mo=False)
-        cmds.delete(temp)
-        cmds.move(0,-2, 0, 'Loc_Neck_0',r=True,os =True,wd=True)
-        cmds.rotate()
+        for i in range(5):
+            cmds.separator(h=10)
 
+        cmds.text('step', l='Step 2: Create all the joints  :', fn='boldLabelFont', h=10)
 
-def lockAll(lock):
-    global editMode
+        Joints.CreateJointsWindow()
+        '''
+        cmds.columnLayout()
+        cmds.checkBoxGrp(numberOfCheckBoxes=3, label='Three Buttons', labelArray3=['One', 'Two', 'Three'])
+        cmds.checkBoxGrp(numberOfCheckBoxes=4, label='Four Buttons', labelArray4=['I', 'II', 'III', 'IV'])
+        '''
+        # displaying Window
+        cmds.showWindow()
 
-    axis =['x','y','z']
-    attr = ['t', 'r', 's' ]
+    def lockAll(lock):
+        global editMode
 
-    nodes = cmds.listRelatives('Loc_*', allParents =True)
+        axis =['x','y','z']
+        attr = ['t', 'r', 's' ]
 
-    for axe in axis:
-        for att in attr:
-            for node in nodes:
-                cmds.setAttr (node +'.' +att+axe, lock= lock)
+        nodes = cmds.listRelatives('Loc_*', allParents =True)
 
-    if editMode ==False:
-        editMode = True
-    else:
-        editMode = False
+        for axe in axis:
+            for att in attr:
+                for node in nodes:
+                    cmds.setAttr (node +'.' +att+axe, lock= lock)
 
-def mirrorLocatorsXY(*args):
-    allLeftLocators= cmds.ls("Loc_L*",sl =False)
-    leftLocators=cmds.listRelatives(*allLeftLocators,p=True,f=True)
-    allRightLocators= cmds.ls("Loc_R*",sl=False)
-    rightLocators = cmds.listRelatives(*allRightLocators, p=True, f=True)
+        if editMode ==False:
+            editMode = True
+        else:
+            editMode = False
 
-    for i,l in enumerate(leftLocators):
-        pos = cmds.xform(l, q=True, t =True, ws =True)
-        cmds.move(-pos[0],pos[1],pos[2],rightLocators[i])
+    def mirrorLocatorsXY(*args):
+        allLeftLocators= cmds.ls("Loc_L*",sl =False)
+        leftLocators=cmds.listRelatives(*allLeftLocators,p=True,f=True)
+        allRightLocators= cmds.ls("Loc_R*",sl=False)
+        rightLocators = cmds.listRelatives(*allRightLocators, p=True, f=True)
 
-def mirrorLocatorsYX(*args):
-    allLeftLocators= cmds.ls("Loc_L*",sl =False)
-    leftLocators=cmds.listRelatives(*allLeftLocators,p=True,f=True)
-    allRightLocators= cmds.ls("Loc_R*",sl=False)
-    rightLocators = cmds.listRelatives(*allRightLocators, p=True, f=True)
+        for i,l in enumerate(leftLocators):
+            pos = cmds.xform(l, q=True, t =True, ws =True)
+            cmds.move(-pos[0],pos[1],pos[2],rightLocators[i])
 
-    for i,l in enumerate(rightLocators):
-        pos = cmds.xform(l, q=True, t =True, ws =True)
-        cmds.move(-pos[0],pos[1],pos[2],leftLocators[i])
+    def mirrorLocatorsYX(*args):
+        allLeftLocators= cmds.ls("Loc_L*",sl =False)
+        leftLocators=cmds.listRelatives(*allLeftLocators,p=True,f=True)
+        allRightLocators= cmds.ls("Loc_R*",sl=False)
+        rightLocators = cmds.listRelatives(*allRightLocators, p=True, f=True)
+
+        for i,l in enumerate(rightLocators):
+            pos = cmds.xform(l, q=True, t =True, ws =True)
+            cmds.move(-pos[0],pos[1],pos[2],leftLocators[i])

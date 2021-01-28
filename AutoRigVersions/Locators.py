@@ -46,9 +46,7 @@ def createSpine():
     createLegs(1)
     createLegs(-1)
     createHead()
-'''
     createTail()
-'''
 
 def createArms(side):
     rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
@@ -283,7 +281,7 @@ def createLegs(side):
                 cmds.delete(tempConst)
 
 def createHead():
-    for i in range(0, cmds.intField(neckCount, q=True, value=True)):
+    for i in range(0, 3):#cmds.intField(3, q=True, value=True)
         neck = cmds.spaceLocator(n='Loc_Neck_' + str(i))
         cmds.move(0, (3 * i), 0, neck)
         if i == 0:
@@ -299,3 +297,20 @@ def createHead():
     if rig_Type == 2:
         #cmds.rotate(180, 0, 0, 'Loc_Neck_0')
         cmds.move(0, 3, 0, 'Loc_Neck_0',r=True,os =True,wd=True)
+        
+def createTail():
+    if rig_Type== 2:
+        for i in range (0,5):
+            tail = cmds.spaceLocator(n='Loc_Tail_' + str(i))
+            cmds.move(0, (-3 * i), 0, tail)
+            if i == 0:
+                cmds.parent(tail, 'Loc_SPINE_0')
+            else:
+                cmds.parent(tail, 'Loc_Tail_' + str(i - 1))
+        temp = cmds.parentConstraint('Loc_SPINE_0','Loc_Tail_0', mo=False)
+        cmds.delete(temp)
+        cmds.move(0,-2, 0, 'Loc_Neck_0',r=True,os =True,wd=True)
+        cmds.rotate()
+
+        
+        
