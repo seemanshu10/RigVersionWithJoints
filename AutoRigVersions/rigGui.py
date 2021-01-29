@@ -49,14 +49,15 @@ def guiJoints():
     cmds.menuItem(label='Quadraped')
 
     cmds.button(l='Mirror Loc Y->X', w=10, h=10, c="mirrorLocatorsYX()", aop=True)
+    for i in range(2):
+        cmds.separator(h=30, style='none')
+    '''
     for i in range(1):
         cmds.separator(h=30, style='none')
-
-    for i in range(1):
-        cmds.separator(h=30, style='none')
-
-        Locators.globalNames()
-        cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
+    '''
+    cmds.text("Spine Count",l="Spine Count:",align ="center")
+    spineCount = cmds.intField(minValue=1, maxValue=10, value=4)
+    cmds.button(l='Mirror Loc X->Y', w=10, h=10, c="mirrorLocatorsXY()", aop=True)
     for i in range(2):
         cmds.separator(h=30, style='none')
 
@@ -67,7 +68,7 @@ def guiJoints():
     for i in range(2):
         cmds.separator(h=30, style='none')
 
-    cmds.button(l='Create Locators', c=Locators.generateLocators)
+    cmds.button(l='Create Locators', c=doLocators)
 
     cmds.button(l='Delete Locators', c=Locators.deleteLocators)
 
@@ -79,7 +80,7 @@ def guiJoints():
 
     cmds.text('step', l='Step 2: Create all the joints  :', fn='boldLabelFont', h=10)
 
-    cmds.button(l='Create Joints ', c=Joints.createJoints)
+    cmds.button(l='Create Joints ', c="Joints.createJoints()")
     '''
     cmds.columnLayout()
     cmds.checkBoxGrp(numberOfCheckBoxes=3, label='Three Buttons', labelArray3=['One', 'Two', 'Three'])
@@ -87,6 +88,10 @@ def guiJoints():
     '''
     # displaying Window
     cmds.showWindow()
+
+def doLocators(void):
+    _spineCount = cmds.intField(spineCount,q=True,v=True)
+    Locators.generateLocators(_spineCount)
 
 def lockAll(lock):
     global editMode

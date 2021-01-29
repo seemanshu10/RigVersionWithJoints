@@ -4,9 +4,12 @@ import Locators
 Locators =reload(Locators)
 
 def CreateJointsWindow():
-	cmds.button(l='Create Joints ', c="Joints.createJoints()")
+	#global spineCount 
+	#cmds.button(l='Create Joints ', c="Joints.createJoints()")
+	#spineCount = cmds.intField(minValue=1, maxValue=10, value=4)
+	print "i print"
 	
-def createJoints(*args):
+def createJoints():
     if cmds.objExists("Rig"):
         print "Rig already Exists"
     else:
@@ -16,6 +19,7 @@ def createJoints(*args):
     rig_Type = cmds.optionMenu('rig_Menu_Type', q=True, sl=True)
     #create spine
     root =cmds.ls("Loc_ROOT")
+
     allSpine= cmds.ls ("Loc_SPINE_*",type ='locator')
     spine= cmds.listRelatives(*allSpine, p =True,f=True)
     rootPos = cmds.xform(root, q=True,t =True,ws =True)
@@ -73,7 +77,35 @@ def createJoints(*args):
         cmds.mirrorJoint('Rig_L_BackLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
         cmds.mirrorJoint('Rig_L_FrontLeg_0', mirrorYZ=True, searchReplace=('L_', 'R_'))
 
-    createHead(spineCount)
+    createHead(len(allSpine))
+    if rig_Type==1:
+        createFingerLoop()
+    else:
+        createTail()
+
+def createFingerLoop():
+    for x in range(0,4):
+        createFingerJoints(x)
+
+def createFingerJoints(i):
+    if rig_Type ==1:
+        cmds.select(deselect =True)
+        cmds.select("Rig_L_UpperArm2")
+        l_allFingers =cmds.ls("Loc_L_Finger_"+str(i)+"_*",type ='transform')
+        l_fingers =cmds.listRelatives(l_allFingers,p=True,s=False)
+
+        for x,f in enumerate(l_allFingers):
+            l_pos =cmds.xform(f,q=True,t=True,ws=True)
+            l_j=cmds.joint(radius=1,p=l_pos,name="RIG_L_Finger_"+str(i)+"_"+str(x))
+
+        cmds.select(deselect=True)
+        cmds.select("Rig_R_UpperArm2")
+        r_allFingers = cmds.ls("Loc_R_Finger_" + str(i) + "_*", type='transform')
+        r_fingers = cmds.listRelatives(r_allFingers, p=True, s=False)
+
+        for y, g in enumerate(r_allFingers):
+            r_pos = cmds.xform(g, q=True, t=True, ws=True)
+            r_j = cmds.joint(radius=1, p=r_pos, name="RIG_L_Finger_" + str(i) + "_" + str(y))
 
 def createHead(count):
     cmds.select(deselect =True)
@@ -83,3 +115,17 @@ def createHead(count):
     cmds.joint(radius=1, p=cmds.xform(cmds.ls('Loc_Neck_1'), q=True, t=True, ws=True), name="RIG_Neck_1")
     cmds.joint(radius=1, p=cmds.xform(cmds.ls('Loc_Neck_2'), q=True, t=True, ws=True), name="RIG_Neck_2")
 
+def createTail():
+    cmds.select(deselect =True)
+    cmds.select("Rig_Spine_0")
+
+    start=cmds.ls("Loc_Spine_0")
+
+    allTail = cmds.ls("Loc_Tail_*", type='locator')
+    tail = cmds.listRelatives(*allTail, p=True, f=True)
+    rootPos = cmds.xform(start, q=True, t=True, ws=True)
+
+    # create spine
+    for i, j in enumerate(tail):
+        pos = cmds.xform(j, q=True, t=True, ws=True)
+        j = cmds.joint(radius=2, p=pos, name="Rig_Tail_"+ str(i))
